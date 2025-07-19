@@ -105,39 +105,61 @@ class GameAssetWebsite {
 
     // Detect asset packs from the file system
     async detectAssetPacks() {
-        // In a real GitHub Pages environment, we would use GitHub API
-        // For now, we'll use a static list based on known packs
         const knownPacks = [
             {
                 name: 'cartoon-formula-1',
                 displayName: 'Cartoon Formula 1',
-                description: 'Bunte und verspielte Formula 1 Rennwagen im Cartoon-Stil. Perfekt für Arcade-Rennspiele.',
+                description: 'Bunte und verspielte Formula 1 Rennwagen im Cartoon-Stil. Perfekt für Arcade-Rennspiele mit dynamischen Fahrzeugen.',
                 files: ['racecar.png'],
                 previewImage: 'assets/packs/cartoon-formula-1/racecar.png',
                 category: 'Fahrzeuge',
-                fileCount: 1
+                fileCount: 1,
+                tags: ['Racing', 'Cartoon', 'Vehicles']
             },
             {
                 name: 'realistic_cyberpunk',
                 displayName: 'Realistic Cyberpunk',
-                description: 'Futuristische Cyberpunk-Assets mit realistischem Design. Ideal für Science-Fiction Spiele.',
-                files: [],
-                previewImage: null,
+                description: 'Umfangreiche Cyberpunk-Assets mit realistischem Design. Enthält Charaktere, Gebäude und Fahrzeuge für futuristische Welten.',
+                files: ['foodtruck.png', 'techshop.png', 'bus.png', 'bar.png', 'cyborg_1.png', 'school.png'],
+                previewImage: 'assets/packs/realistic_cyberpunk/cyborg_1.png',
                 category: 'Sci-Fi',
-                fileCount: 0
+                fileCount: 6,
+                tags: ['Cyberpunk', 'Futuristic', 'Characters', 'Buildings']
             }
         ];
 
-        // Try to get actual file listings (this would work with GitHub API in production)
+        // Enhance pack data by checking file availability
         for (let pack of knownPacks) {
             try {
-                const response = await fetch(`assets/packs/${pack.name}/`);
-                if (response.ok) {
-                    // In a real implementation, parse directory listing or use GitHub API
+                // Try to load the preview image to verify pack availability
+                if (pack.previewImage) {
+                    const img = new Image();
+                    await new Promise((resolve, reject) => {
+                        img.onload = resolve;
+                        img.onerror = reject;
+                        img.src = pack.previewImage;
+                    });
+                }
+                pack.available = true;
+            } catch (error) {
+                // If preview image fails, try alternative preview
+                if (pack.files.length > 0) {
+                    try {
+                        const altImg = new Image();
+                        await new Promise((resolve, reject) => {
+                            altImg.onload = resolve;
+                            altImg.onerror = reject;
+                            altImg.src = `assets/packs/${pack.name}/${pack.files[0]}`;
+                        });
+                        pack.previewImage = `assets/packs/${pack.name}/${pack.files[0]}`;
+                        pack.available = true;
+                    } catch (altError) {
+                        pack.available = true; // Still include pack but without preview
+                        pack.previewImage = null;
+                    }
+                } else {
                     pack.available = true;
                 }
-            } catch (error) {
-                pack.available = true; // Assume available for demo
             }
         }
 
@@ -150,6 +172,7 @@ class GameAssetWebsite {
         card.className = 'asset-card';
         
         const hasPreview = pack.previewImage && pack.previewImage !== null;
+        const tags = pack.tags || [];
         
         card.innerHTML = `
             <div class="asset-image-container">
@@ -157,16 +180,35 @@ class GameAssetWebsite {
                     `<img src="${pack.previewImage}" alt="${pack.displayName}" class="asset-image" onerror="this.style.display='none'; this.parentNode.innerHTML='<div class=&quot;asset-image-placeholder&quot;>🎮</div>'">` :
                     `<div class="asset-image asset-image-placeholder">🎮</div>`
                 }
+                <div class="asset-overlay">
+                    <span class="asset-category-badge">${pack.category}</span>
+                </div>
             </div>
             <div class="asset-content">
                 <h3 class="asset-title">${pack.displayName}</h3>
                 <p class="asset-description">${pack.description}</p>
+                ${tags.length > 0 ? `
+                    <div class="asset-tags">
+                        ${tags.map(tag => `<span class="asset-tag">${tag}</span>`).join('')}
+                    </div>
+                ` : ''}
                 <div class="asset-meta">
-                    <span class="asset-category">${pack.category}</span>
-                    <span class="asset-count">${pack.fileCount} Dateien</span>
+                    <span class="asset-count">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14,2 14,8 20,8"></polyline>
+                        </svg>
+                        ${pack.fileCount} Dateien
+                    </span>
+                    <span class="asset-size">Kostenlos</span>
                 </div>
                 <button class="asset-download" onclick="gameAsset.downloadPack('${pack.name}')">
-                    📦 Pack herunterladen
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7,10 12,15 17,10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Pack herunterladen
                 </button>
             </div>
         `;
@@ -268,7 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.gameAsset = new GameAssetWebsite();
 });
 
-// Add some CSS for the image placeholder
+// Add some CSS for enhanced styling
 const style = document.createElement('style');
 style.textContent = `
     .asset-image-placeholder {
@@ -276,14 +318,16 @@ style.textContent = `
         align-items: center;
         justify-content: center;
         font-size: 4rem;
-        background: var(--background-gray);
+        background: linear-gradient(135deg, var(--background-gray) 0%, #f3f4f6 100%);
         color: var(--text-secondary);
+        width: 100%;
+        height: 100%;
+        transition: all 0.3s ease;
     }
     
-    .asset-image-container {
-        position: relative;
-        height: 200px;
-        overflow: hidden;
+    .asset-card:hover .asset-image-placeholder {
+        background: linear-gradient(135deg, #e5e7eb 0%, var(--background-gray) 100%);
+        transform: scale(1.05);
     }
     
     .message {
@@ -291,9 +335,26 @@ style.textContent = `
         top: 100px;
         right: 20px;
         padding: 1rem 2rem;
-        border-radius: 0.5rem;
+        border-radius: 0.75rem;
         z-index: 1001;
         animation: slideIn 0.3s ease;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .info-message {
+        background: rgba(59, 130, 246, 0.9);
+        color: white;
+    }
+    
+    .error-message {
+        background: rgba(239, 68, 68, 0.9);
+        color: white;
+    }
+    
+    .success-message {
+        background: rgba(16, 185, 129, 0.9);
+        color: white;
     }
     
     @keyframes slideIn {
@@ -305,6 +366,73 @@ style.textContent = `
             transform: translateX(0);
             opacity: 1;
         }
+    }
+    
+    /* Enhanced navigation styling */
+    .nav-menu {
+        align-items: center;
+    }
+    
+    .nav-link {
+        position: relative;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .nav-link:hover {
+        background: rgba(37, 99, 235, 0.1);
+        color: var(--primary-color);
+    }
+    
+    .nav-link:active {
+        background: rgba(37, 99, 235, 0.15);
+    }
+    
+    /* Improved button styles */
+    .btn {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+    }
+    
+    .btn:hover::before {
+        left: 100%;
+    }
+    
+    /* Enhanced loading animation */
+    .spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid rgba(37, 99, 235, 0.1);
+        border-top: 4px solid var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    /* Subtle animations for feature cards */
+    .feature-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1);
     }
 `;
 document.head.appendChild(style);
