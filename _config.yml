@@ -1,0 +1,20 @@
+# GitHub Pages Configuration for Game Asset Lab
+title: "Game Asset Lab"
+description: "Kostenlose hochwertige Assets für Ihre Spiele"
+author: "Game Asset Lab"
+
+# GitHub Pages Settings
+remote_theme: null
+plugins: []
+
+# SEO and social media
+lang: de
+locale: de_DE
+
+# Navigation and theme
+show_downloads: false
+show_title: true
+
+# Custom variables
+github_username: Mrowinski-Thorge
+repository_name: Gameasset
