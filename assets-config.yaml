@@ -1,0 +1,73 @@
+# Asset Pack Configuration
+# This file contains metadata for all game asset packs
+
+asset_packs:
+  - id: cartoon-formula-1
+    name: "Cartoon Formula 1"
+    description: "Colorful cartoon-style Formula 1 racing assets perfect for arcade racing games"
+    category: "Vehicles"
+    style: "Cartoon"
+    tags:
+      - "racing"
+      - "car"
+      - "formula1"
+      - "cartoon"
+      - "colorful"
+    preview_image: "assets/packs/cartoon-formula-1/racecar.png"
+    folder_path: "assets/packs/cartoon-formula-1"
+    files:
+      - "racecar.png"
+    file_count: 1
+    total_size: "1.4MB"
+    license: "Free for commercial use"
+    created_date: "2025-01-19"
+    
+  - id: realistic-cyberpunk
+    name: "Realistic Cyberpunk Collection"
+    description: "High-quality realistic cyberpunk-themed assets including vehicles, characters, and buildings"
+    category: "Cyberpunk"
+    style: "Realistic"
+    tags:
+      - "cyberpunk"
+      - "futuristic"
+      - "realistic"
+      - "vehicles"
+      - "characters"
+      - "buildings"
+    preview_image: "assets/packs/realistic_cyberpunk/cyborg_1.png"
+    folder_path: "assets/packs/realistic_cyberpunk"
+    files:
+      - "bus.png"
+      - "cyborg_1.png"
+      - "foodtruck.png"
+      - "school.png"
+      - "techshop.png"
+    file_count: 5
+    total_size: "8.6MB"
+    license: "Free for commercial use"
+    created_date: "2025-01-19"
+
+# Website configuration
+website:
+  title: "Game Asset Collection"
+  subtitle: "Free Game Assets for Developers"
+  description: "Download high-quality game assets for your projects. From cartoon vehicles to realistic cyberpunk themes."
+  gpt_link: "https://chatgpt.com/g/g-687994dccfac8191836246ad2682ea59-game-asset-lab"
+  gpt_text: "Need custom assets? Try our Game Asset Lab GPT!"
+  
+# Categories for filtering
+categories:
+  - "Vehicles"
+  - "Characters"
+  - "Buildings"
+  - "Cyberpunk"
+  - "Weapons"
+  - "UI Elements"
+  
+# Styles for filtering  
+styles:
+  - "Cartoon"
+  - "Realistic"
+  - "Pixel Art"
+  - "Low Poly"
+  - "Hand Drawn"

@@ -1,0 +1,35 @@
+# GitHub Pages Configuration for Game Asset Collection
+title: "Game Asset Collection"
+description: "A curated collection of game assets for developers and designers"
+url: "https://mrowinski-thorge.github.io"
+baseurl: "/Gameasset"
+
+# Theme and plugins
+theme: minima
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+
+# Collections
+collections:
+  assets:
+    output: false
+    
+# Default metadata
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
+      
+# Exclude files from processing
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor

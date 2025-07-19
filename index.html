@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Game Asset Collection - Free high-quality game assets for developers and designers">
+    <meta name="keywords" content="game assets, free assets, game development, sprites, textures, 3D models">
+    <meta name="author" content="Game Asset Collection">
+    
+    <title>Game Asset Collection - Free Game Assets for Developers</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Background Elements -->
+    <div class="bg-gradient"></div>
+    <div class="bg-pattern"></div>
+    
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-gamepad"></i>
+                <span>Game Assets</span>
+            </div>
+            <div class="nav-links">
+                <a href="#home" class="nav-link active">Home</a>
+                <a href="#assets" class="nav-link">Assets</a>
+                <a href="#about" class="nav-link">About</a>
+                <a href="https://chatgpt.com/g/g-687994dccfac8191836246ad2682ea59-game-asset-lab" target="_blank" class="nav-link cta-link">
+                    <i class="fas fa-robot"></i> Asset Lab GPT
+                </a>
+            </div>
+            <button class="mobile-toggle" id="mobileToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    <span class="gradient-text">Game Asset</span>
+                    <span class="highlight">Collection</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Free high-quality game assets for developers and designers. 
+                    Download instantly and bring your games to life.
+                </p>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="assetCount">0</span>
+                        <span class="stat-label">Asset Packs</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="downloadCount">1.2K+</span>
+                        <span class="stat-label">Downloads</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">100%</span>
+                        <span class="stat-label">Free</span>
+                    </div>
+                </div>
+                <div class="hero-actions">
+                    <a href="#assets" class="btn btn-primary">
+                        <i class="fas fa-download"></i>
+                        Browse Assets
+                    </a>
+                    <a href="https://chatgpt.com/g/g-687994dccfac8191836246ad2682ea59-game-asset-lab" 
+                       target="_blank" class="btn btn-secondary">
+                        <i class="fas fa-robot"></i>
+                        Custom Assets GPT
+                    </a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="floating-card" style="--delay: 0s;">
+                    <i class="fas fa-car"></i>
+                </div>
+                <div class="floating-card" style="--delay: 0.5s;">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="floating-card" style="--delay: 1s;">
+                    <i class="fas fa-building"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Filter Section -->
+    <section class="filters">
+        <div class="container">
+            <div class="filter-controls">
+                <div class="filter-group">
+                    <label for="categoryFilter">Category:</label>
+                    <select id="categoryFilter" class="filter-select">
+                        <option value="">All Categories</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="styleFilter">Style:</label>
+                    <select id="styleFilter" class="filter-select">
+                        <option value="">All Styles</option>
+                    </select>
+                </div>
+                <div class="filter-group search-group">
+                    <label for="searchFilter">Search:</label>
+                    <input type="text" id="searchFilter" class="search-input" placeholder="Search assets...">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Assets Section -->
+    <section id="assets" class="assets-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-images"></i>
+                    Asset Packs
+                </h2>
+                <p class="section-description">
+                    High-quality game assets ready for download. All assets are free for commercial use.
+                </p>
+            </div>
+            
+            <div class="assets-grid" id="assetsGrid">
+                <!-- Assets will be loaded dynamically -->
+                <div class="loading-spinner">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading assets...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about-section">
+        <div class="container">
+            <div class="about-content">
+                <h2 class="section-title">About Game Asset Collection</h2>
+                <div class="about-grid">
+                    <div class="about-card">
+                        <i class="fas fa-gift"></i>
+                        <h3>100% Free</h3>
+                        <p>All assets are completely free for commercial and personal use. No attribution required.</p>
+                    </div>
+                    <div class="about-card">
+                        <i class="fas fa-palette"></i>
+                        <h3>High Quality</h3>
+                        <p>Carefully curated collection of professional-grade assets for your game projects.</p>
+                    </div>
+                    <div class="about-card">
+                        <i class="fas fa-download"></i>
+                        <h3>Instant Download</h3>
+                        <p>Download assets instantly with direct links. No registration or sign-up required.</p>
+                    </div>
+                    <div class="about-card">
+                        <i class="fas fa-robot"></i>
+                        <h3>Custom Assets</h3>
+                        <p>Need something specific? Use our Game Asset Lab GPT to generate custom assets tailored to your needs.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Need Custom Game Assets?</h2>
+                <p>Our AI-powered Game Asset Lab can create custom assets tailored to your specific game requirements.</p>
+                <a href="https://chatgpt.com/g/g-687994dccfac8191836246ad2682ea59-game-asset-lab" 
+                   target="_blank" class="btn btn-primary btn-large">
+                    <i class="fas fa-robot"></i>
+                    Try Game Asset Lab GPT
+                    <i class="fas fa-external-link-alt"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <i class="fas fa-gamepad"></i>
+                    <span>Game Asset Collection</span>
+                </div>
+                <div class="footer-links">
+                    <a href="#home">Home</a>
+                    <a href="#assets">Assets</a>
+                    <a href="#about">About</a>
+                    <a href="https://chatgpt.com/g/g-687994dccfac8191836246ad2682ea59-game-asset-lab" target="_blank">Asset Lab GPT</a>
+                </div>
+                <div class="footer-info">
+                    <p>&copy; 2025 Game Asset Collection. All rights reserved.</p>
+                    <p>Free assets for game developers worldwide.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="script.js"></script>
+</body>
+</html>
