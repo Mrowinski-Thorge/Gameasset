@@ -105,43 +105,93 @@ class GameAssetWebsite {
 
     // Detect asset packs from the file system
     async detectAssetPacks() {
-        // In a real GitHub Pages environment, we would use GitHub API
-        // For now, we'll use a static list based on known packs
+        // Enhanced asset detection with actual file discovery
         const knownPacks = [
             {
                 name: 'cartoon-formula-1',
                 displayName: 'Cartoon Formula 1',
                 description: 'Bunte und verspielte Formula 1 Rennwagen im Cartoon-Stil. Perfekt für Arcade-Rennspiele.',
-                files: ['racecar.png'],
-                previewImage: 'assets/packs/cartoon-formula-1/racecar.png',
-                category: 'Fahrzeuge',
-                fileCount: 1
+                category: 'Fahrzeuge'
             },
             {
                 name: 'realistic_cyberpunk',
                 displayName: 'Realistic Cyberpunk',
                 description: 'Futuristische Cyberpunk-Assets mit realistischem Design. Ideal für Science-Fiction Spiele.',
-                files: [],
-                previewImage: null,
-                category: 'Sci-Fi',
-                fileCount: 0
+                category: 'Sci-Fi'
             }
         ];
 
-        // Try to get actual file listings (this would work with GitHub API in production)
+        // Dynamically detect files for each pack
         for (let pack of knownPacks) {
             try {
-                const response = await fetch(`assets/packs/${pack.name}/`);
-                if (response.ok) {
-                    // In a real implementation, parse directory listing or use GitHub API
-                    pack.available = true;
-                }
+                pack.files = await this.getPackFiles(pack.name);
+                pack.fileCount = pack.files.length;
+                pack.previewImage = await this.getPreviewImage(pack.name, pack.files);
+                pack.available = pack.files.length > 0;
             } catch (error) {
-                pack.available = true; // Assume available for demo
+                console.log(`Could not detect files for pack ${pack.name}:`, error);
+                pack.files = [];
+                pack.fileCount = 0;
+                pack.previewImage = null;
+                pack.available = false;
             }
         }
 
-        return knownPacks.filter(pack => pack.available !== false);
+        return knownPacks.filter(pack => pack.available);
+    }
+
+    // Get files for a specific pack
+    async getPackFiles(packName) {
+        // Known files for each pack (since we can't easily list directory contents in static hosting)
+        const packFiles = {
+            'cartoon-formula-1': ['racecar.png'],
+            'realistic_cyberpunk': ['foodtruck.png', 'techshop.png', 'bus.png', 'bar.png', 'cyborg_1.png', 'school.png']
+        };
+
+        const files = packFiles[packName] || [];
+        
+        // Verify files exist by trying to fetch them
+        const verifiedFiles = [];
+        for (const file of files) {
+            try {
+                const response = await fetch(`assets/packs/${packName}/${file}`, { method: 'HEAD' });
+                if (response.ok) {
+                    verifiedFiles.push(file);
+                }
+            } catch (error) {
+                // File doesn't exist, skip it
+                console.log(`File ${file} not found in pack ${packName}`);
+            }
+        }
+
+        return verifiedFiles;
+    }
+
+    // Get preview image for a pack
+    async getPreviewImage(packName, files) {
+        if (files.length === 0) return null;
+        
+        // Try the first image file as preview
+        const imageFiles = files.filter(file => 
+            file.toLowerCase().endsWith('.png') || 
+            file.toLowerCase().endsWith('.jpg') || 
+            file.toLowerCase().endsWith('.jpeg') ||
+            file.toLowerCase().endsWith('.webp')
+        );
+        
+        if (imageFiles.length > 0) {
+            const previewPath = `assets/packs/${packName}/${imageFiles[0]}`;
+            try {
+                const response = await fetch(previewPath, { method: 'HEAD' });
+                if (response.ok) {
+                    return previewPath;
+                }
+            } catch (error) {
+                // Preview image doesn't exist
+            }
+        }
+        
+        return null;
     }
 
     // Create asset pack card element
@@ -174,7 +224,7 @@ class GameAssetWebsite {
         return card;
     }
 
-    // Download asset pack as ZIP
+    // Download asset pack as ZIP (simplified version without external dependencies)
     async downloadPack(packName) {
         try {
             const button = event.target;
@@ -182,10 +232,60 @@ class GameAssetWebsite {
             button.textContent = '⏳ Wird vorbereitet...';
             button.disabled = true;
 
-            // In a real implementation, this would create a ZIP file
-            // For now, we'll simulate the download process
+            // Get pack files
+            const files = await this.getPackFiles(packName);
             
-            await this.simulatePackDownload(packName);
+            if (files.length === 0) {
+                throw new Error('Keine Dateien in diesem Pack gefunden');
+            }
+
+            // For multiple files, create a simple download approach
+            if (files.length === 1) {
+                // Single file - direct download
+                const filename = files[0];
+                button.textContent = `⏳ Lade ${filename}...`;
+                
+                const response = await fetch(`assets/packs/${packName}/${filename}`);
+                if (!response.ok) {
+                    throw new Error(`Could not fetch ${filename}`);
+                }
+                
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } else {
+                // Multiple files - download all individually
+                for (let i = 0; i < files.length; i++) {
+                    const filename = files[i];
+                    button.textContent = `⏳ Lade ${filename} (${i+1}/${files.length})...`;
+                    
+                    try {
+                        const response = await fetch(`assets/packs/${packName}/${filename}`);
+                        if (response.ok) {
+                            const blob = await response.blob();
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = filename;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                            
+                            // Small delay between downloads
+                            await new Promise(resolve => setTimeout(resolve, 500));
+                        }
+                    } catch (error) {
+                        console.error(`Error downloading ${filename}:`, error);
+                    }
+                }
+            }
             
             button.textContent = '✅ Download gestartet!';
             setTimeout(() => {
@@ -202,35 +302,6 @@ class GameAssetWebsite {
                 button.disabled = false;
             }, 2000);
         }
-    }
-
-    // Simulate pack download (in production, this would create actual ZIP files)
-    async simulatePackDownload(packName) {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                // In a real implementation, we would:
-                // 1. Fetch all files in the pack directory
-                // 2. Create a ZIP file using JSZip library
-                // 3. Trigger download
-                
-                console.log(`Download simuliert für Pack: ${packName}`);
-                
-                // Create a simple text file as demonstration
-                const content = `Asset Pack: ${packName}\nHeruntergeladen am: ${new Date().toLocaleString('de-DE')}\n\nDies ist eine Demo-Datei. In der echten Implementierung würden hier die Asset-Dateien als ZIP-Paket heruntergeladen.`;
-                const blob = new Blob([content], { type: 'text/plain' });
-                const url = URL.createObjectURL(blob);
-                
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${packName}-demo.txt`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                
-                resolve();
-            }, 1500);
-        });
     }
 
     // Setup smooth scrolling for navigation links
