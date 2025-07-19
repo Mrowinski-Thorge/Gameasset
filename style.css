@@ -218,6 +218,43 @@ body {
     justify-content: center;
     font-size: 2rem;
     animation: float 6s ease-in-out infinite;
+    transition: transform 0.3s ease;
+}
+
+.floating-asset.large-asset {
+    width: 80px;
+    height: 80px;
+    font-size: 2.5rem;
+    box-shadow: var(--shadow-lg);
+}
+
+.floating-asset.small-asset {
+    width: 45px;
+    height: 45px;
+    font-size: 1.5rem;
+}
+
+.sparkle-effect {
+    position: absolute;
+    font-size: 1.5rem;
+    animation: sparkle 2s ease-out forwards;
+    pointer-events: none;
+    z-index: 10;
+}
+
+@keyframes sparkle {
+    0% {
+        opacity: 0;
+        transform: scale(0) rotate(0deg);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.2) rotate(180deg);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0) rotate(360deg);
+    }
 }
 
 .floating-asset:nth-child(1) { top: 10%; left: 20%; animation-delay: 0s; }
@@ -226,6 +263,8 @@ body {
 .floating-asset:nth-child(4) { top: 60%; right: 25%; animation-delay: 3s; }
 .floating-asset:nth-child(5) { top: 70%; left: 30%; animation-delay: 4s; }
 .floating-asset:nth-child(6) { top: 30%; left: 50%; animation-delay: 5s; }
+.floating-asset:nth-child(7) { top: 80%; right: 40%; animation-delay: 6s; }
+.floating-asset:nth-child(8) { top: 15%; left: 60%; animation-delay: 7s; }
 
 @keyframes float {
     0%, 100% { transform: translateY(0px) rotate(0deg); }
@@ -297,6 +336,23 @@ body {
     color: var(--text-secondary);
     margin-bottom: 1rem;
     line-height: 1.5;
+}
+
+.asset-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.asset-tag {
+    background: var(--background-gray);
+    color: var(--text-secondary);
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid var(--border-color);
 }
 
 .asset-meta {
