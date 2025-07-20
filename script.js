@@ -1,567 +1,1049 @@
-// GameAsset Website JavaScript
-class GameAssetWebsite {
+// NeoBuilder - The Smart No-Code Studio
+// Advanced drag-and-drop website builder with live preview
+
+class NeoBuilder {
     constructor() {
+        this.selectedElement = null;
+        this.currentViewport = 'desktop';
+        this.isDarkMode = false;
+        this.project = {
+            name: 'Unbenanntes Projekt',
+            elements: [],
+            styles: {},
+            settings: {}
+        };
+        
         this.init();
     }
 
-    init() {
-        this.setupNavigation();
-        this.setupHeroAnimations();
-        this.loadAssetPacks();
-        this.setupSmoothScrolling();
-    }
-
-    // Navigation functionality
-    setupNavigation() {
-        const hamburger = document.querySelector('.hamburger');
-        const navMenu = document.querySelector('.nav-menu');
-
-        if (hamburger && navMenu) {
-            hamburger.addEventListener('click', () => {
-                hamburger.classList.toggle('active');
-                navMenu.classList.toggle('active');
-            });
-
-            // Close menu when clicking nav links
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.addEventListener('click', () => {
-                    hamburger.classList.remove('active');
-                    navMenu.classList.remove('active');
-                });
-            });
+    async init() {
+        try {
+            // Show loading overlay
+            this.showLoading();
+            
+            // Initialize core components
+            await this.initializeComponents();
+            
+            // Setup event listeners
+            this.setupEventListeners();
+            
+            // Load saved project if exists
+            this.loadProject();
+            
+            // Hide loading overlay
+            this.hideLoading();
+            
+            // Show welcome toast
+            this.showToast('Willkommen bei NeoBuilder!', 'success');
+            
+        } catch (error) {
+            console.error('Initialization error:', error);
+            this.showToast('Fehler beim Laden der Anwendung', 'error');
         }
     }
 
-    // Setup hero section animations
-    setupHeroAnimations() {
-        const floatingContainer = document.querySelector('.floating-assets');
-        if (!floatingContainer) return;
+    async initializeComponents() {
+        // Initialize drag and drop
+        this.initializeDragAndDrop();
+        
+        // Initialize preview iframe
+        this.initializePreview();
+        
+        // Initialize viewport controls
+        this.initializeViewportControls();
+        
+        // Initialize theme toggle
+        this.initializeThemeToggle();
+        
+        // Initialize properties panel
+        this.initializePropertiesPanel();
+        
+        // Initialize animation panel
+        this.initializeAnimationPanel();
+        
+        // Initialize context menu
+        this.initializeContextMenu();
+        
+        // Initialize export functionality
+        this.initializeExport();
+    }
 
-        // Enhanced asset icons for animation
-        const assetIcons = [
-            '🎮', '⚔️', '🏰', '🧙‍♂️', '🐉', '💎', 
-            '🏹', '🛡️', '👑', '🗡️', '🧪', '📜',
-            '🎯', '🔮', '⭐', '🎨', '🎲', '🎪',
-            '🚗', '🚀', '🌟', '💰', '🔥', '❄️'
-        ];
-
-        // Create more floating asset elements with varied sizes
-        for (let i = 0; i < 8; i++) {
-            const asset = document.createElement('div');
-            asset.className = 'floating-asset';
-            asset.textContent = assetIcons[i % assetIcons.length];
+    initializeDragAndDrop() {
+        const elementItems = document.querySelectorAll('.element-item');
+        
+        elementItems.forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                const elementType = e.target.dataset.element;
+                e.dataTransfer.setData('text/plain', elementType);
+                e.target.classList.add('drag-ghost');
+            });
             
-            // Vary the animation timing and size
-            asset.style.animationDelay = `${i * 0.7}s`;
-            asset.style.animationDuration = `${4 + Math.random() * 4}s`;
-            
-            // Add size variation
-            if (i % 3 === 0) {
-                asset.classList.add('large-asset');
-            } else if (i % 3 === 1) {
-                asset.classList.add('small-asset');
-            }
-            
-            floatingContainer.appendChild(asset);
-        }
-
-        // Enhanced mouse interaction with more natural movement
-        floatingContainer.addEventListener('mousemove', (e) => {
-            const rect = floatingContainer.getBoundingClientRect();
-            const x = (e.clientX - rect.left) / rect.width;
-            const y = (e.clientY - rect.top) / rect.height;
-
-            document.querySelectorAll('.floating-asset').forEach((asset, index) => {
-                const factor = 0.3 + (index % 3) * 0.2; // Vary the movement factor
-                const xOffset = (x - 0.5) * 30 * factor;
-                const yOffset = (y - 0.5) * 30 * factor;
-                const rotation = (x - 0.5) * 15 * factor;
-                
-                asset.style.transform = `translate(${xOffset}px, ${yOffset}px) rotate(${rotation}deg)`;
+            item.addEventListener('dragend', (e) => {
+                e.target.classList.remove('drag-ghost');
             });
         });
-
-        // Reset animation on mouse leave
-        floatingContainer.addEventListener('mouseleave', () => {
-            document.querySelectorAll('.floating-asset').forEach(asset => {
-                asset.style.transform = '';
-            });
-        });
-
-        // Add periodic sparkle effect
-        setInterval(() => {
-            this.addSparkleEffect(floatingContainer);
-        }, 3000);
     }
 
-    // Add sparkle effect to hero section
-    addSparkleEffect(container) {
-        const sparkle = document.createElement('div');
-        sparkle.className = 'sparkle-effect';
-        sparkle.textContent = '✨';
+    initializePreview() {
+        const iframe = document.getElementById('preview-iframe');
         
-        // Random position
-        sparkle.style.left = Math.random() * 100 + '%';
-        sparkle.style.top = Math.random() * 100 + '%';
-        
-        container.appendChild(sparkle);
-        
-        // Remove after animation
-        setTimeout(() => {
-            if (sparkle.parentNode) {
-                sparkle.parentNode.removeChild(sparkle);
-            }
-        }, 2000);
-    }
-
-    // Load and display asset packs
-    async loadAssetPacks() {
-        const assetGrid = document.getElementById('asset-packs');
-        if (!assetGrid) return;
-
-        try {
-            // Show loading spinner
-            assetGrid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-
-            // Get asset packs from the assets/packs directory
-            const assetPacks = await this.detectAssetPacks();
+        // Setup drop zone in iframe
+        iframe.addEventListener('load', () => {
+            const iframeDoc = iframe.contentDocument;
+            const dropZone = iframeDoc.getElementById('drop-zone');
             
-            if (assetPacks.length === 0) {
-                assetGrid.innerHTML = '<p class="error-message">Keine Asset-Packs gefunden.</p>';
-                return;
+            if (dropZone) {
+                this.setupIframeDropZone(dropZone, iframeDoc);
             }
-
-            // Clear loading and render asset packs
-            assetGrid.innerHTML = '';
-            assetPacks.forEach(pack => {
-                const card = this.createAssetCard(pack);
-                assetGrid.appendChild(card);
-            });
-
-        } catch (error) {
-            console.error('Fehler beim Laden der Asset-Packs:', error);
-            assetGrid.innerHTML = '<p class="error-message">Fehler beim Laden der Asset-Packs. Bitte versuchen Sie es später erneut.</p>';
-        }
+        });
+        
+        // Setup preview actions
+        document.getElementById('preview-refresh').addEventListener('click', () => {
+            this.refreshPreview();
+        });
+        
+        document.getElementById('preview-fullscreen').addEventListener('click', () => {
+            this.toggleFullscreen();
+        });
     }
 
-    // Detect asset packs from the file system
-    async detectAssetPacks() {
-        // Try to dynamically detect from GitHub API first, fallback to static list
-        try {
-            const dynamicPacks = await this.detectPacksFromGitHub();
-            if (dynamicPacks.length > 0) {
-                return dynamicPacks;
+    setupIframeDropZone(dropZone, iframeDoc) {
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+        
+        dropZone.addEventListener('dragleave', (e) => {
+            if (!dropZone.contains(e.relatedTarget)) {
+                dropZone.classList.remove('drag-over');
             }
-        } catch (error) {
-            console.warn('GitHub API detection failed, using static configuration:', error);
-        }
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            
+            const elementType = e.dataTransfer.getData('text/plain');
+            this.createElement(elementType, e.clientX, e.clientY, iframeDoc);
+        });
+        
+        // Setup element selection
+        dropZone.addEventListener('click', (e) => {
+            if (e.target !== dropZone) {
+                this.selectElement(e.target);
+            } else {
+                this.deselectElement();
+            }
+        });
+        
+        // Setup context menu
+        dropZone.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            if (e.target !== dropZone) {
+                this.showContextMenu(e.clientX, e.clientY, e.target);
+            }
+        });
+    }
 
-        // Fallback to static asset pack definitions
-        const assetPacks = [
-            {
-                name: 'cartoon-formula-1',
-                displayName: 'Cartoon Formula 1',
-                description: 'Bunte und verspielte Formula 1 Rennwagen im Cartoon-Stil. Perfekt für Arcade-Rennspiele und familienfreundliche Racing-Games.',
-                files: ['racecar.png'],
-                previewImage: 'assets/packs/cartoon-formula-1/racecar.png',
-                category: 'Fahrzeuge',
-                fileCount: 1,
-                tags: ['Rennwagen', 'Cartoon', 'Arcade', 'Racing']
+    createElement(type, x, y, iframeDoc) {
+        const element = this.generateElement(type);
+        const dropZone = iframeDoc.getElementById('drop-zone');
+        
+        // If this is the first element, clear the drop zone placeholder
+        if (dropZone.textContent.includes('Ziehen Sie Elemente')) {
+            dropZone.innerHTML = '';
+            dropZone.style.minHeight = 'auto';
+            dropZone.style.display = 'block';
+            dropZone.style.border = 'none';
+            dropZone.style.background = 'transparent';
+        }
+        
+        dropZone.appendChild(element);
+        this.selectElement(element);
+        
+        // Save to project
+        this.saveElementToProject(element, type);
+        
+        this.showToast(`${this.getElementDisplayName(type)} hinzugefügt`, 'success');
+    }
+
+    generateElement(type) {
+        const element = document.createElement('div');
+        element.className = 'nb-element';
+        element.dataset.elementType = type;
+        element.dataset.elementId = this.generateElementId();
+        
+        // Apply default styles
+        this.applyDefaultStyles(element, type);
+        
+        // Generate content based on type
+        switch (type) {
+            case 'text':
+                element.innerHTML = '<p>Beispieltext. Klicken Sie hier zum Bearbeiten.</p>';
+                break;
+            case 'heading':
+                element.innerHTML = '<h2>Überschrift</h2>';
+                break;
+            case 'button':
+                element.innerHTML = '<button class="nb-button">Button</button>';
+                break;
+            case 'container':
+                element.innerHTML = '<div class="nb-container">Container</div>';
+                break;
+            case 'section':
+                element.innerHTML = '<section class="nb-section">Section</section>';
+                break;
+            case 'grid':
+                element.innerHTML = '<div class="nb-grid"><div>Spalte 1</div><div>Spalte 2</div></div>';
+                break;
+            case 'image':
+                element.innerHTML = '<img src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'150\' viewBox=\'0 0 200 150\'%3E%3Crect width=\'200\' height=\'150\' fill=\'%23f3f4f6\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%236b7280\'%3EBild%3C/text%3E%3C/svg%3E" alt="Placeholder">';
+                break;
+            case 'link':
+                element.innerHTML = '<a href="#" class="nb-link">Link</a>';
+                break;
+            case 'input':
+                element.innerHTML = '<input type="text" placeholder="Text eingeben" class="nb-input">';
+                break;
+            case 'textarea':
+                element.innerHTML = '<textarea placeholder="Text eingeben" class="nb-textarea"></textarea>';
+                break;
+            case 'select':
+                element.innerHTML = '<select class="nb-select"><option>Option 1</option><option>Option 2</option></select>';
+                break;
+            default:
+                element.innerHTML = '<div>Element</div>';
+        }
+        
+        return element;
+    }
+
+    applyDefaultStyles(element, type) {
+        const styles = {
+            text: {
+                margin: '16px 0',
+                padding: '8px',
+                fontSize: '16px',
+                lineHeight: '1.5'
             },
-            {
-                name: 'realistic_cyberpunk',
-                displayName: 'Realistic Cyberpunk',
-                description: 'Umfassende Sammlung futuristischer Cyberpunk-Assets mit realistischem Design. Enthält Gebäude, Charaktere und Fahrzeuge für dystopische Zukunftswelten.',
-                files: ['bar.png', 'bus.png', 'cyborg_1.png', 'foodtruck.png', 'school.png', 'techshop.png'],
-                previewImage: 'assets/packs/realistic_cyberpunk/cyborg_1.png',
-                category: 'Sci-Fi',
-                fileCount: 6,
-                tags: ['Cyberpunk', 'Futuristisch', 'Realistisch', 'Charaktere', 'Gebäude']
+            heading: {
+                margin: '24px 0 16px',
+                padding: '8px',
+                fontSize: '32px',
+                fontWeight: '600'
+            },
+            button: {
+                margin: '8px',
+                padding: '12px 24px',
+                backgroundColor: '#007AFF',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '16px',
+                cursor: 'pointer'
+            },
+            container: {
+                margin: '16px 0',
+                padding: '24px',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                backgroundColor: '#f9fafb'
+            },
+            section: {
+                margin: '32px 0',
+                padding: '48px 24px',
+                backgroundColor: '#ffffff'
+            },
+            grid: {
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '16px',
+                margin: '16px 0',
+                padding: '16px'
+            },
+            image: {
+                maxWidth: '100%',
+                height: 'auto',
+                borderRadius: '8px'
+            },
+            link: {
+                color: '#007AFF',
+                textDecoration: 'none',
+                padding: '4px'
+            },
+            input: {
+                width: '100%',
+                padding: '12px',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                fontSize: '16px'
+            },
+            textarea: {
+                width: '100%',
+                minHeight: '100px',
+                padding: '12px',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                fontSize: '16px',
+                resize: 'vertical'
+            },
+            select: {
+                width: '100%',
+                padding: '12px',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                fontSize: '16px'
             }
-        ];
-
-        // Verify that asset files actually exist
-        for (let pack of assetPacks) {
-            try {
-                // Test if the preview image exists
-                const img = new Image();
-                await new Promise((resolve, reject) => {
-                    img.onload = resolve;
-                    img.onerror = reject;
-                    img.src = pack.previewImage;
-                });
-                pack.available = true;
-                pack.previewImageValid = true;
-            } catch (error) {
-                // If preview image fails, try to use first available file or fallback
-                console.warn(`Preview image not found for ${pack.name}:`, error);
-                pack.available = true;
-                pack.previewImageValid = false;
-                
-                // Try to find an alternative preview image from the files list
-                if (pack.files.length > 0) {
-                    pack.previewImage = `assets/packs/${pack.name}/${pack.files[0]}`;
-                }
-            }
-        }
-
-        return assetPacks.filter(pack => pack.available);
+        };
+        
+        const elementStyles = styles[type] || {};
+        Object.assign(element.style, elementStyles);
     }
 
-    // Detect asset packs using GitHub API (for production)
-    async detectPacksFromGitHub() {
-        // This would be used in production to automatically detect new asset packs
-        // For now, return empty array to use fallback
-        return [];
+    initializeViewportControls() {
+        const viewportBtns = document.querySelectorAll('.viewport-btn');
         
-        /* Example implementation for GitHub Pages:
-        const repo = 'Mrowinski-Thorge/Gameasset';
-        const path = 'assets/packs';
-        const apiUrl = `https://api.github.com/repos/${repo}/contents/${path}`;
-        
-        try {
-            const response = await fetch(apiUrl);
-            if (!response.ok) return [];
-            
-            const contents = await response.json();
-            const packs = [];
-            
-            for (const item of contents) {
-                if (item.type === 'dir') {
-                    const packData = await this.analyzePackDirectory(repo, item.path);
-                    if (packData) {
-                        packs.push(packData);
-                    }
-                }
-            }
-            
-            return packs;
-        } catch (error) {
-            console.error('GitHub API error:', error);
-            return [];
-        }
-        */
+        viewportBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const viewport = btn.dataset.viewport;
+                this.switchViewport(viewport);
+            });
+        });
     }
 
-    // Create asset pack card element
-    createAssetCard(pack) {
-        const card = document.createElement('div');
-        card.className = 'asset-card';
+    switchViewport(viewport) {
+        this.currentViewport = viewport;
         
-        const hasPreview = pack.previewImage && pack.previewImageValid !== false;
-        const tagsHtml = pack.tags ? pack.tags.map(tag => `<span class="asset-tag">${tag}</span>`).join('') : '';
+        // Update active button
+        document.querySelectorAll('.viewport-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.viewport === viewport);
+        });
         
-        card.innerHTML = `
-            <div class="asset-image-container">
-                ${hasPreview ? 
-                    `<img src="${pack.previewImage}" alt="${pack.displayName}" class="asset-image" 
-                         onerror="this.style.display='none'; this.parentNode.innerHTML='<div class=&quot;asset-image-placeholder&quot;>${this.getPackIcon(pack.category)}</div>'">` :
-                    `<div class="asset-image asset-image-placeholder">${this.getPackIcon(pack.category)}</div>`
-                }
+        // Update iframe class
+        const iframe = document.getElementById('preview-iframe');
+        iframe.className = `preview-iframe ${viewport}-view`;
+        
+        this.showToast(`Ansicht gewechselt zu ${this.getViewportDisplayName(viewport)}`, 'info');
+    }
+
+    initializeThemeToggle() {
+        const themeToggle = document.getElementById('theme-toggle');
+        
+        themeToggle.addEventListener('click', () => {
+            this.toggleTheme();
+        });
+    }
+
+    toggleTheme() {
+        this.isDarkMode = !this.isDarkMode;
+        document.documentElement.setAttribute('data-theme', this.isDarkMode ? 'dark' : 'light');
+        
+        const icon = document.querySelector('#theme-toggle i');
+        icon.className = this.isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
+        
+        this.showToast(`${this.isDarkMode ? 'Dunkles' : 'Helles'} Design aktiviert`, 'info');
+    }
+
+    initializePropertiesPanel() {
+        // Properties panel will be populated when elements are selected
+    }
+
+    selectElement(element) {
+        // Remove previous selection
+        this.deselectElement();
+        
+        // Add selection to new element
+        element.classList.add('element-selected');
+        this.selectedElement = element;
+        
+        // Update properties panel
+        this.updatePropertiesPanel(element);
+    }
+
+    deselectElement() {
+        if (this.selectedElement) {
+            this.selectedElement.classList.remove('element-selected');
+            this.selectedElement = null;
+        }
+        
+        // Reset properties panel
+        this.resetPropertiesPanel();
+    }
+
+    updatePropertiesPanel(element) {
+        const propertiesContent = document.getElementById('properties-content');
+        const elementType = element.dataset.elementType;
+        
+        propertiesContent.innerHTML = `
+            <div class="property-group">
+                <h4>Element</h4>
+                <div class="property-row">
+                    <span class="property-label">Typ</span>
+                    <span class="property-value">${this.getElementDisplayName(elementType)}</span>
+                </div>
+                <div class="property-row">
+                    <span class="property-label">ID</span>
+                    <span class="property-value">${element.dataset.elementId}</span>
+                </div>
             </div>
-            <div class="asset-content">
-                <h3 class="asset-title">${pack.displayName}</h3>
-                <p class="asset-description">${pack.description}</p>
-                <div class="asset-tags">
-                    ${tagsHtml}
+            
+            <div class="property-group">
+                <h4>Layout</h4>
+                <div class="property-row">
+                    <label class="property-label">Breite</label>
+                    <input type="text" class="property-input" data-property="width" 
+                           value="${element.style.width || 'auto'}" placeholder="auto">
                 </div>
-                <div class="asset-meta">
-                    <span class="asset-category">${pack.category}</span>
-                    <span class="asset-count">${pack.fileCount} ${pack.fileCount === 1 ? 'Datei' : 'Dateien'}</span>
+                <div class="property-row">
+                    <label class="property-label">Höhe</label>
+                    <input type="text" class="property-input" data-property="height" 
+                           value="${element.style.height || 'auto'}" placeholder="auto">
                 </div>
-                <button class="asset-download" onclick="gameAsset.downloadPack('${pack.name}')">
-                    📦 Pack herunterladen
+                <div class="property-row">
+                    <label class="property-label">Margin</label>
+                    <input type="text" class="property-input" data-property="margin" 
+                           value="${element.style.margin || '0'}" placeholder="0">
+                </div>
+                <div class="property-row">
+                    <label class="property-label">Padding</label>
+                    <input type="text" class="property-input" data-property="padding" 
+                           value="${element.style.padding || '0'}" placeholder="0">
+                </div>
+            </div>
+            
+            <div class="property-group">
+                <h4>Stil</h4>
+                <div class="property-row">
+                    <label class="property-label">Hintergrund</label>
+                    <input type="color" class="color-picker" data-property="backgroundColor" 
+                           value="${this.rgbToHex(element.style.backgroundColor) || '#ffffff'}">
+                </div>
+                <div class="property-row">
+                    <label class="property-label">Textfarbe</label>
+                    <input type="color" class="color-picker" data-property="color" 
+                           value="${this.rgbToHex(element.style.color) || '#000000'}">
+                </div>
+                <div class="property-row">
+                    <label class="property-label">Schriftgröße</label>
+                    <input type="text" class="property-input" data-property="fontSize" 
+                           value="${element.style.fontSize || '16px'}" placeholder="16px">
+                </div>
+                <div class="property-row">
+                    <label class="property-label">Rahmen</label>
+                    <input type="text" class="property-input" data-property="border" 
+                           value="${element.style.border || 'none'}" placeholder="none">
+                </div>
+                <div class="property-row">
+                    <label class="property-label">Radius</label>
+                    <input type="text" class="property-input" data-property="borderRadius" 
+                           value="${element.style.borderRadius || '0'}" placeholder="0">
+                </div>
+            </div>
+            
+            <div class="property-group">
+                <h4>Aktionen</h4>
+                <button class="btn-export" onclick="neoBuilder.duplicateElement()" style="width: 100%; margin-bottom: 8px;">
+                    <i class="fas fa-copy"></i> Duplizieren
+                </button>
+                <button class="btn-export" onclick="neoBuilder.deleteElement()" style="width: 100%; background: var(--danger-color);">
+                    <i class="fas fa-trash"></i> Löschen
                 </button>
             </div>
         `;
-
-        return card;
-    }
-
-    // Get appropriate icon for pack category
-    getPackIcon(category) {
-        const icons = {
-            'Fahrzeuge': '🚗',
-            'Sci-Fi': '🚀',
-            'Fantasy': '🧙‍♂️',
-            'Modern': '🏢',
-            'Medieval': '🏰',
-            'UI': '🎮',
-            'Characters': '👥',
-            'Default': '🎨'
-        };
-        return icons[category] || icons['Default'];
-    }
-
-    // Download asset pack as ZIP
-    async downloadPack(packName) {
-        try {
-            const button = event.target;
-            const originalText = button.textContent;
-            button.textContent = '⏳ Wird vorbereitet...';
-            button.disabled = true;
-
-            // Find the pack data
-            const assetPacks = await this.detectAssetPacks();
-            const pack = assetPacks.find(p => p.name === packName);
-            
-            if (!pack) {
-                throw new Error('Asset-Pack nicht gefunden');
-            }
-
-            // Create ZIP file with actual assets
-            await this.createAssetZip(pack);
-            
-            button.textContent = '✅ Download gestartet!';
-            setTimeout(() => {
-                button.textContent = originalText;
-                button.disabled = false;
-            }, 2000);
-
-        } catch (error) {
-            console.error('Download-Fehler:', error);
-            const button = event.target;
-            button.textContent = '❌ Fehler beim Download';
-            setTimeout(() => {
-                button.textContent = '📦 Pack herunterladen';
-                button.disabled = false;
-            }, 2000);
-        }
-    }
-
-    // Create ZIP file with actual asset files
-    async createAssetZip(pack) {
-        // Check if JSZip is available
-        if (typeof JSZip === 'undefined') {
-            console.warn('JSZip not available, using fallback download');
-            return this.fallbackPackDownload(pack);
-        }
-
-        const zip = new JSZip();
-        const packFolder = zip.folder(pack.name);
         
-        // Add a README file
-        const readmeContent = `${pack.displayName}
-${'='.repeat(pack.displayName.length)}
+        // Setup property change listeners
+        this.setupPropertyListeners();
+    }
 
-${pack.description}
+    setupPropertyListeners() {
+        const propertyInputs = document.querySelectorAll('.property-input, .color-picker');
+        
+        propertyInputs.forEach(input => {
+            input.addEventListener('input', (e) => {
+                const property = e.target.dataset.property;
+                const value = e.target.value;
+                
+                if (this.selectedElement && property) {
+                    this.selectedElement.style[property] = value;
+                    this.saveProject();
+                }
+            });
+        });
+    }
 
-Kategorie: ${pack.category}
-Anzahl Dateien: ${pack.fileCount}
-${pack.tags ? `Tags: ${pack.tags.join(', ')}` : ''}
+    resetPropertiesPanel() {
+        const propertiesContent = document.getElementById('properties-content');
+        propertiesContent.innerHTML = `
+            <div class="no-selection">
+                <div class="no-selection-icon">
+                    <i class="fas fa-mouse-pointer"></i>
+                </div>
+                <p>Wählen Sie ein Element aus, um die Eigenschaften zu bearbeiten</p>
+            </div>
+        `;
+    }
 
-Heruntergeladen am: ${new Date().toLocaleString('de-DE')}
+    initializeAnimationPanel() {
+        const animationPanel = document.getElementById('animation-panel');
+        const closeBtn = document.getElementById('close-animation-panel');
+        
+        closeBtn.addEventListener('click', () => {
+            animationPanel.classList.remove('show');
+        });
+        
+        // Setup animation buttons
+        const animationBtns = document.querySelectorAll('.animation-btn');
+        animationBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const animation = btn.dataset.animation;
+                this.applyAnimation(animation);
+                
+                // Update active state
+                animationBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+        
+        // Setup range inputs
+        const durationInput = document.getElementById('animation-duration');
+        const delayInput = document.getElementById('animation-delay');
+        const durationValue = document.getElementById('duration-value');
+        const delayValue = document.getElementById('delay-value');
+        
+        durationInput.addEventListener('input', (e) => {
+            durationValue.textContent = e.target.value + 'ms';
+        });
+        
+        delayInput.addEventListener('input', (e) => {
+            delayValue.textContent = e.target.value + 'ms';
+        });
+    }
 
-Lizenz: Siehe AGB auf der Website für Nutzungsbedingungen.
+    initializeContextMenu() {
+        const contextMenu = document.getElementById('context-menu');
+        
+        // Hide context menu when clicking elsewhere
+        document.addEventListener('click', () => {
+            contextMenu.classList.remove('show');
+        });
+        
+        // Setup context menu actions
+        const contextItems = document.querySelectorAll('.context-menu-item');
+        contextItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const action = item.dataset.action;
+                this.handleContextAction(action);
+                contextMenu.classList.remove('show');
+            });
+        });
+    }
+
+    showContextMenu(x, y, element) {
+        const contextMenu = document.getElementById('context-menu');
+        
+        // Position context menu
+        contextMenu.style.left = x + 'px';
+        contextMenu.style.top = y + 'px';
+        contextMenu.classList.add('show');
+        
+        // Store reference to target element
+        this.contextMenuTarget = element;
+    }
+
+    handleContextAction(action) {
+        if (!this.contextMenuTarget) return;
+        
+        switch (action) {
+            case 'edit':
+                this.selectElement(this.contextMenuTarget);
+                break;
+            case 'duplicate':
+                this.duplicateElement(this.contextMenuTarget);
+                break;
+            case 'delete':
+                this.deleteElement(this.contextMenuTarget);
+                break;
+            case 'animate':
+                this.selectElement(this.contextMenuTarget);
+                this.showAnimationPanel();
+                break;
+        }
+    }
+
+    initializeExport() {
+        const exportBtn = document.getElementById('export-project');
+        
+        exportBtn.addEventListener('click', () => {
+            this.exportProject();
+        });
+    }
+
+    async exportProject() {
+        try {
+            this.showToast('Export wird vorbereitet...', 'info');
+            
+            const iframe = document.getElementById('preview-iframe');
+            const iframeDoc = iframe.contentDocument;
+            
+            // Generate complete HTML
+            const html = this.generateExportHTML(iframeDoc);
+            
+            // Create ZIP file
+            if (typeof JSZip !== 'undefined') {
+                await this.createExportZip(html);
+            } else {
+                // Fallback: download HTML file directly
+                this.downloadFile('index.html', html, 'text/html');
+            }
+            
+            this.showToast('Export erfolgreich!', 'success');
+            
+        } catch (error) {
+            console.error('Export error:', error);
+            this.showToast('Fehler beim Export', 'error');
+        }
+    }
+
+    generateExportHTML(iframeDoc) {
+        const dropZone = iframeDoc.getElementById('drop-zone');
+        const content = dropZone.innerHTML;
+        
+        return `<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${this.project.name}</title>
+    <style>
+        /* NeoBuilder Generated Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+            line-height: 1.6;
+            color: #1D1D1F;
+        }
+        
+        .nb-element {
+            transition: all 0.3s ease;
+        }
+        
+        .nb-button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .nb-button:hover {
+            background: #0051D5;
+            transform: translateY(-2px);
+        }
+        
+        .nb-container {
+            padding: 24px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: #f9fafb;
+        }
+        
+        .nb-section {
+            padding: 48px 24px;
+            background: #ffffff;
+        }
+        
+        .nb-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        
+        .nb-link {
+            color: #007AFF;
+            text-decoration: none;
+        }
+        
+        .nb-link:hover {
+            text-decoration: underline;
+        }
+        
+        .nb-input, .nb-textarea, .nb-select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .nb-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nb-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nb-section {
+                padding: 24px 16px;
+            }
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideInUp {
+            from { 
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideInLeft {
+            from { 
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes zoomIn {
+            from { 
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to { 
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    ${content}
+    
+    <script>
+        // Generated by NeoBuilder - The Smart No-Code Studio
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Website erstellt mit NeoBuilder - The Smart No-Code Studio');
+            
+            // Add scroll animations
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.animation = 'fadeIn 0.6s ease forwards';
+                    }
+                });
+            }, observerOptions);
+            
+            // Observe all elements
+            document.querySelectorAll('.nb-element').forEach(el => {
+                observer.observe(el);
+            });
+        });
+    </script>
+</body>
+</html>`;
+    }
+
+    async createExportZip(html) {
+        const zip = new JSZip();
+        
+        // Add main HTML file
+        zip.file('index.html', html);
+        
+        // Add README
+        const readme = `# ${this.project.name}
+
+Dieses Projekt wurde mit NeoBuilder erstellt - The Smart No-Code Studio.
+
+## Installation
+
+1. Entpacken Sie diese Datei
+2. Öffnen Sie index.html in Ihrem Browser
+3. Ihre Website ist bereit!
+
+## Features
+
+- Responsive Design
+- Moderne CSS-Animationen
+- Cross-Browser-Kompatibilität
+- SEO-optimiert
 
 ---
-GameAsset - Ihre Quelle für hochwertige Spiel-Assets
-Website: https://gameasset.de
+Erstellt mit ❤️ von NeoBuilder
 `;
-        packFolder.file('README.txt', readmeContent);
         
-        // Add asset files to ZIP
-        let successCount = 0;
-        for (const fileName of pack.files) {
-            try {
-                const response = await fetch(`assets/packs/${pack.name}/${fileName}`);
-                if (response.ok) {
-                    const blob = await response.blob();
-                    packFolder.file(fileName, blob);
-                    successCount++;
-                } else {
-                    console.warn(`Could not fetch ${fileName}`);
-                }
-            } catch (error) {
-                console.warn(`Error fetching ${fileName}:`, error);
-            }
-        }
+        zip.file('README.md', readme);
         
-        if (successCount === 0) {
-            throw new Error('Keine Asset-Dateien konnten geladen werden');
-        }
-
         // Generate and download ZIP
         const content = await zip.generateAsync({type: 'blob'});
-        const url = URL.createObjectURL(content);
-        
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${pack.name}-assets.zip`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        console.log(`ZIP created successfully with ${successCount} files`);
+        this.downloadFile(`${this.project.name.replace(/\s+/g, '-')}.zip`, content, 'application/zip');
     }
 
-    // Fallback download when JSZip is not available
-    async fallbackPackDownload(pack) {
-        // Download individual files or create a simple text file with instructions
-        if (pack.files.length === 1) {
-            // For single file packs, download the file directly
-            try {
-                const fileName = pack.files[0];
-                const response = await fetch(`assets/packs/${pack.name}/${fileName}`);
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const url = URL.createObjectURL(blob);
-                    
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = fileName;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                    
-                    console.log(`Single file downloaded: ${fileName}`);
-                    return;
-                }
-            } catch (error) {
-                console.warn('Direct download failed:', error);
-            }
-        }
-        
-        // Fallback: create instruction file
-        const content = `Asset Pack Download: ${pack.displayName}
-${'='.repeat(pack.displayName.length + 20)}
-
-Dieses Pack enthält folgende Dateien:
-${pack.files.map(f => `- ${f}`).join('\n')}
-
-Da die automatische ZIP-Erstellung nicht verfügbar ist, 
-besuchen Sie bitte die Website direkt und laden Sie die 
-Dateien einzeln aus dem Ordner assets/packs/${pack.name}/ herunter.
-
-Alternativ können Sie das komplette Repository von GitHub klonen:
-git clone https://github.com/Mrowinski-Thorge/Gameasset.git
-
-Pack-Informationen:
-- Name: ${pack.displayName}
-- Kategorie: ${pack.category}
-- Beschreibung: ${pack.description}
-${pack.tags ? `- Tags: ${pack.tags.join(', ')}` : ''}
-
-Heruntergeladen am: ${new Date().toLocaleString('de-DE')}
-`;
-        
-        const blob = new Blob([content], { type: 'text/plain' });
+    downloadFile(filename, content, mimeType) {
+        const blob = new Blob([content], { type: mimeType });
         const url = URL.createObjectURL(blob);
         
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${pack.name}-download-info.txt`;
+        a.download = filename;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+    }
+
+    // Utility methods
+    generateElementId() {
+        return 'el_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    getElementDisplayName(type) {
+        const names = {
+            text: 'Text',
+            heading: 'Überschrift',
+            button: 'Button',
+            container: 'Container',
+            section: 'Sektion',
+            grid: 'Grid',
+            image: 'Bild',
+            link: 'Link',
+            input: 'Eingabefeld',
+            textarea: 'Textbereich',
+            select: 'Auswahlliste'
+        };
+        return names[type] || type;
+    }
+
+    getViewportDisplayName(viewport) {
+        const names = {
+            desktop: 'Desktop',
+            tablet: 'Tablet',
+            mobile: 'Mobile'
+        };
+        return names[viewport] || viewport;
+    }
+
+    rgbToHex(rgb) {
+        if (!rgb) return '#000000';
         
-        console.log('Fallback download info created');
+        const result = rgb.match(/\d+/g);
+        if (!result) return rgb;
+        
+        return '#' + result.map(x => {
+            const hex = parseInt(x).toString(16);
+            return hex.length === 1 ? '0' + hex : hex;
+        }).join('');
     }
 
-    // Simulate pack download (in production, this would create actual ZIP files)
-    async simulatePackDownload(packName) {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                // In a real implementation, we would:
-                // 1. Fetch all files in the pack directory
-                // 2. Create a ZIP file using JSZip library
-                // 3. Trigger download
-                
-                console.log(`Download simuliert für Pack: ${packName}`);
-                
-                // Create a simple text file as demonstration
-                const content = `Asset Pack: ${packName}\nHeruntergeladen am: ${new Date().toLocaleString('de-DE')}\n\nDies ist eine Demo-Datei. In der echten Implementierung würden hier die Asset-Dateien als ZIP-Paket heruntergeladen.`;
-                const blob = new Blob([content], { type: 'text/plain' });
-                const url = URL.createObjectURL(blob);
-                
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${packName}-demo.txt`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                
-                resolve();
-            }, 1500);
+    duplicateElement(element = this.selectedElement) {
+        if (!element) return;
+        
+        const clone = element.cloneNode(true);
+        clone.dataset.elementId = this.generateElementId();
+        
+        element.parentNode.insertBefore(clone, element.nextSibling);
+        this.selectElement(clone);
+        
+        this.showToast('Element dupliziert', 'success');
+    }
+
+    deleteElement(element = this.selectedElement) {
+        if (!element) return;
+        
+        if (confirm('Möchten Sie dieses Element wirklich löschen?')) {
+            element.remove();
+            this.deselectElement();
+            this.showToast('Element gelöscht', 'success');
+        }
+    }
+
+    showAnimationPanel() {
+        const panel = document.getElementById('animation-panel');
+        panel.classList.add('show');
+    }
+
+    applyAnimation(animation) {
+        if (!this.selectedElement) return;
+        
+        const duration = document.getElementById('animation-duration').value;
+        const delay = document.getElementById('animation-delay').value;
+        
+        this.selectedElement.style.animation = `${animation} ${duration}ms ease ${delay}ms forwards`;
+        
+        this.showToast(`Animation ${animation} angewendet`, 'success');
+    }
+
+    refreshPreview() {
+        const iframe = document.getElementById('preview-iframe');
+        iframe.src = iframe.src;
+        this.showToast('Vorschau aktualisiert', 'info');
+    }
+
+    toggleFullscreen() {
+        const container = document.querySelector('.preview-container');
+        
+        if (!document.fullscreenElement) {
+            container.requestFullscreen();
+        } else {
+            document.exitFullscreen();
+        }
+    }
+
+    saveProject() {
+        try {
+            localStorage.setItem('neobuilder_project', JSON.stringify(this.project));
+        } catch (error) {
+            console.warn('Could not save project:', error);
+        }
+    }
+
+    loadProject() {
+        try {
+            const saved = localStorage.getItem('neobuilder_project');
+            if (saved) {
+                this.project = JSON.parse(saved);
+                document.getElementById('project-name').textContent = this.project.name;
+            }
+        } catch (error) {
+            console.warn('Could not load project:', error);
+        }
+    }
+
+    saveElementToProject(element, type) {
+        this.project.elements.push({
+            id: element.dataset.elementId,
+            type: type,
+            styles: element.style.cssText,
+            content: element.innerHTML
         });
+        this.saveProject();
     }
 
-    // Setup smooth scrolling for navigation links
-    setupSmoothScrolling() {
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
+    setupEventListeners() {
+        // Save project button
+        document.getElementById('save-project').addEventListener('click', () => {
+            this.saveProject();
+            this.showToast('Projekt gespeichert', 'success');
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch (e.key) {
+                    case 's':
+                        e.preventDefault();
+                        this.saveProject();
+                        this.showToast('Projekt gespeichert', 'success');
+                        break;
+                    case 'd':
+                        e.preventDefault();
+                        this.duplicateElement();
+                        break;
+                    case 'z':
+                        e.preventDefault();
+                        // TODO: Implement undo
+                        break;
                 }
-            });
+            }
+            
+            if (e.key === 'Delete' && this.selectedElement) {
+                this.deleteElement();
+            }
         });
     }
 
-    // Utility method to show messages
-    showMessage(message, type = 'info') {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${type}-message`;
-        messageDiv.textContent = message;
-        
-        document.body.appendChild(messageDiv);
+    showLoading() {
+        const overlay = document.getElementById('loading-overlay');
+        overlay.classList.remove('hide');
+    }
+
+    hideLoading() {
+        const overlay = document.getElementById('loading-overlay');
+        overlay.classList.add('hide');
         
         setTimeout(() => {
-            messageDiv.remove();
-        }, 3000);
+            overlay.style.display = 'none';
+        }, 300);
+    }
+
+    showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        
+        const icons = {
+            success: 'fas fa-check-circle',
+            error: 'fas fa-exclamation-circle',
+            warning: 'fas fa-exclamation-triangle',
+            info: 'fas fa-info-circle'
+        };
+        
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `
+            <div class="toast-icon">
+                <i class="${icons[type]}"></i>
+            </div>
+            <div class="toast-message">${message}</div>
+            <button class="toast-close">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        container.appendChild(toast);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.style.animation = 'slideInToast 0.3s ease reverse';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.remove();
+                    }
+                }, 300);
+            }
+        }, 5000);
+        
+        // Manual close
+        const closeBtn = toast.querySelector('.toast-close');
+        closeBtn.addEventListener('click', () => {
+            toast.remove();
+        });
     }
 }
 
-// Initialize the website when DOM is loaded
+// Initialize NeoBuilder when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    window.gameAsset = new GameAssetWebsite();
+    window.neoBuilder = new NeoBuilder();
 });
-
-// Add some CSS for the image placeholder
-const style = document.createElement('style');
-style.textContent = `
-    .asset-image-placeholder {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 4rem;
-        background: var(--background-gray);
-        color: var(--text-secondary);
-    }
-    
-    .asset-image-container {
-        position: relative;
-        height: 200px;
-        overflow: hidden;
-    }
-    
-    .message {
-        position: fixed;
-        top: 100px;
-        right: 20px;
-        padding: 1rem 2rem;
-        border-radius: 0.5rem;
-        z-index: 1001;
-        animation: slideIn 0.3s ease;
-    }
-    
-    @keyframes slideIn {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-`;
-document.head.appendChild(style);

@@ -3,130 +3,284 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GameAsset - Hochwertige Spiel-Assets</title>
+    <title>NeoBuilder - The Smart No-Code Studio</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <h2>GameAsset</h2>
+<body class="neobuilder-app">
+    <!-- Header/Toolbar -->
+    <header class="app-header">
+        <div class="header-left">
+            <div class="app-logo">
+                <i class="fas fa-cube"></i>
+                <span>NeoBuilder</span>
             </div>
-            <ul class="nav-menu">
-                <li class="nav-item">
-                    <a href="#home" class="nav-link">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#assets" class="nav-link">Assets</a>
-                </li>
-                <li class="nav-item">
-                    <a href="impressum.html" class="nav-link">Impressum</a>
-                </li>
-                <li class="nav-item">
-                    <a href="datenschutz.html" class="nav-link">Datenschutz</a>
-                </li>
-                <li class="nav-item">
-                    <a href="agb.html" class="nav-link">AGB</a>
-                </li>
-            </ul>
-            <div class="hamburger">
-                <span class="bar"></span>
-                <span class="bar"></span>
-                <span class="bar"></span>
+            <div class="project-info">
+                <span id="project-name">Unbenanntes Projekt</span>
+                <button class="btn-save" id="save-project">
+                    <i class="fas fa-save"></i>
+                </button>
             </div>
         </div>
-    </nav>
+        
+        <div class="header-center">
+            <div class="viewport-controls">
+                <button class="viewport-btn active" data-viewport="desktop">
+                    <i class="fas fa-desktop"></i>
+                    <span>Desktop</span>
+                </button>
+                <button class="viewport-btn" data-viewport="tablet">
+                    <i class="fas fa-tablet-alt"></i>
+                    <span>Tablet</span>
+                </button>
+                <button class="viewport-btn" data-viewport="mobile">
+                    <i class="fas fa-mobile-alt"></i>
+                    <span>Mobile</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="header-right">
+            <button class="theme-toggle" id="theme-toggle">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="btn-export" id="export-project">
+                <i class="fas fa-download"></i>
+                <span>Export</span>
+            </button>
+            <div class="header-menu">
+                <button class="menu-btn">
+                    <i class="fas fa-ellipsis-h"></i>
+                </button>
+                <div class="menu-dropdown">
+                    <a href="impressum.html">Impressum</a>
+                    <a href="datenschutz.html">Datenschutz</a>
+                    <a href="agb.html">AGB</a>
+                </div>
+            </div>
+        </div>
+    </header>
 
-    <!-- Hero Section -->
-    <section id="home" class="hero">
-        <div class="hero-container">
-            <div class="hero-content">
-                <div class="hero-text">
-                    <h1 class="hero-title">Hochwertige <span class="accent-text">Spiel-Assets</span> für Ihre Projekte</h1>
-                    <p class="hero-subtitle">Entdecken Sie unsere Sammlung professioneller Game-Assets - von Charakteren über Waffen bis hin zu UI-Elementen. Alles was Sie für Ihr nächstes Spiel benötigen.</p>
-                    <div class="hero-buttons">
-                        <a href="#assets" class="btn btn-primary">Assets entdecken</a>
-                        <a href="#download" class="btn btn-secondary">Kostenlos herunterladen</a>
+    <!-- Main Application Layout -->
+    <main class="app-main">
+        <!-- Left Panel - Elements Library -->
+        <aside class="elements-panel">
+            <div class="panel-header">
+                <h3>
+                    <i class="fas fa-shapes"></i>
+                    Elemente
+                </h3>
+            </div>
+            <div class="panel-content">
+                <div class="element-category">
+                    <h4>Layout</h4>
+                    <div class="element-grid">
+                        <div class="element-item" draggable="true" data-element="container">
+                            <div class="element-icon">
+                                <i class="fas fa-square"></i>
+                            </div>
+                            <span>Container</span>
+                        </div>
+                        <div class="element-item" draggable="true" data-element="section">
+                            <div class="element-icon">
+                                <i class="fas fa-th-large"></i>
+                            </div>
+                            <span>Section</span>
+                        </div>
+                        <div class="element-item" draggable="true" data-element="grid">
+                            <div class="element-icon">
+                                <i class="fas fa-th"></i>
+                            </div>
+                            <span>Grid</span>
+                        </div>
                     </div>
                 </div>
-                <div class="hero-animation">
-                    <div class="floating-assets">
-                        <!-- Animated asset icons will be added here via JavaScript -->
+                
+                <div class="element-category">
+                    <h4>Content</h4>
+                    <div class="element-grid">
+                        <div class="element-item" draggable="true" data-element="text">
+                            <div class="element-icon">
+                                <i class="fas fa-font"></i>
+                            </div>
+                            <span>Text</span>
+                        </div>
+                        <div class="element-item" draggable="true" data-element="heading">
+                            <div class="element-icon">
+                                <i class="fas fa-heading"></i>
+                            </div>
+                            <span>Heading</span>
+                        </div>
+                        <div class="element-item" draggable="true" data-element="button">
+                            <div class="element-icon">
+                                <i class="fas fa-hand-pointer"></i>
+                            </div>
+                            <span>Button</span>
+                        </div>
+                        <div class="element-item" draggable="true" data-element="image">
+                            <div class="element-icon">
+                                <i class="fas fa-image"></i>
+                            </div>
+                            <span>Image</span>
+                        </div>
+                        <div class="element-item" draggable="true" data-element="link">
+                            <div class="element-icon">
+                                <i class="fas fa-link"></i>
+                            </div>
+                            <span>Link</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="element-category">
+                    <h4>Form</h4>
+                    <div class="element-grid">
+                        <div class="element-item" draggable="true" data-element="input">
+                            <div class="element-icon">
+                                <i class="fas fa-edit"></i>
+                            </div>
+                            <span>Input</span>
+                        </div>
+                        <div class="element-item" draggable="true" data-element="textarea">
+                            <div class="element-icon">
+                                <i class="fas fa-align-left"></i>
+                            </div>
+                            <span>Textarea</span>
+                        </div>
+                        <div class="element-item" draggable="true" data-element="select">
+                            <div class="element-icon">
+                                <i class="fas fa-caret-down"></i>
+                            </div>
+                            <span>Select</span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </aside>
 
-    <!-- Assets Section -->
-    <section id="assets" class="assets-section">
-        <div class="container">
-            <h2 class="section-title">Verfügbare Asset-Packs</h2>
-            <p class="section-subtitle">Professionell gestaltete Assets für verschiedene Spielgenres</p>
-            <div id="asset-packs" class="asset-grid">
-                <!-- Asset packs will be loaded dynamically -->
+        <!-- Center Panel - Live Preview -->
+        <section class="preview-panel">
+            <div class="preview-header">
+                <div class="preview-url">
+                    <i class="fas fa-globe"></i>
+                    <span>Live Preview</span>
+                </div>
+                <div class="preview-actions">
+                    <button class="preview-action" id="preview-refresh">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                    <button class="preview-action" id="preview-fullscreen">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
             </div>
-        </div>
-    </section>
+            <div class="preview-container" id="preview-container">
+                <iframe id="preview-iframe" class="preview-iframe desktop-view" srcdoc="<!DOCTYPE html><html><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'><title>Your Website</title><style>body { margin: 0; padding: 20px; font-family: 'Inter', sans-serif; background: #f9fafb; } .drop-zone { min-height: 500px; border: 2px dashed #e5e7eb; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 18px; background: white; } .drop-zone.drag-over { border-color: #3b82f6; background: #eff6ff; }</style></head><body><div class='drop-zone' id='drop-zone'>Ziehen Sie Elemente hierher, um mit der Erstellung zu beginnen</div></body></html>"></iframe>
+                <div class="resize-handles">
+                    <div class="resize-handle resize-handle-right"></div>
+                    <div class="resize-handle resize-handle-bottom"></div>
+                    <div class="resize-handle resize-handle-corner"></div>
+                </div>
+            </div>
+        </section>
 
-    <!-- Features Section -->
-    <section class="features-section">
-        <div class="container">
-            <h2 class="section-title">Warum GameAsset?</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">🎨</div>
-                    <h3>Hochwertige Qualität</h3>
-                    <p>Alle Assets werden professionell erstellt und getestet</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">⚡</div>
-                    <h3>Sofort einsatzbereit</h3>
-                    <p>Optimierte Formate für alle gängigen Game-Engines</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">📦</div>
-                    <h3>Einzeln downloadbar</h3>
-                    <p>Laden Sie nur die Assets herunter, die Sie benötigen</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🔄</div>
-                    <h3>Regelmäßige Updates</h3>
-                    <p>Neue Assets werden automatisch erkannt und hinzugefügt</p>
+        <!-- Right Panel - Properties -->
+        <aside class="properties-panel">
+            <div class="panel-header">
+                <h3>
+                    <i class="fas fa-sliders-h"></i>
+                    Eigenschaften
+                </h3>
+            </div>
+            <div class="panel-content" id="properties-content">
+                <div class="no-selection">
+                    <div class="no-selection-icon">
+                        <i class="fas fa-mouse-pointer"></i>
+                    </div>
+                    <p>Wählen Sie ein Element aus, um die Eigenschaften zu bearbeiten</p>
                 </div>
             </div>
-        </div>
-    </section>
+        </aside>
+    </main>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>GameAsset</h3>
-                    <p>Ihre Quelle für hochwertige Spiel-Assets</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Links</h4>
-                    <ul>
-                        <li><a href="impressum.html">Impressum</a></li>
-                        <li><a href="datenschutz.html">Datenschutz</a></li>
-                        <li><a href="agb.html">AGB</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Kontakt</h4>
-                    <p>info@gameasset.de</p>
+    <!-- Floating Animation Panel -->
+    <div class="animation-panel" id="animation-panel">
+        <div class="panel-header">
+            <h3>
+                <i class="fas fa-magic"></i>
+                Animationen
+            </h3>
+            <button class="panel-close" id="close-animation-panel">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="panel-content">
+            <div class="animation-category">
+                <h4>Eingangseffekte</h4>
+                <div class="animation-grid">
+                    <button class="animation-btn" data-animation="fadeIn">Einblenden</button>
+                    <button class="animation-btn" data-animation="slideInUp">Von unten</button>
+                    <button class="animation-btn" data-animation="slideInLeft">Von links</button>
+                    <button class="animation-btn" data-animation="zoomIn">Vergrößern</button>
                 </div>
             </div>
-            <div class="footer-bottom">
-                <p>&copy; 2025 GameAsset. Alle Rechte vorbehalten.</p>
+            <div class="animation-category">
+                <h4>Trigger</h4>
+                <select id="animation-trigger">
+                    <option value="onLoad">Beim Laden</option>
+                    <option value="onScroll">Beim Scrollen</option>
+                    <option value="onHover">Bei Hover</option>
+                    <option value="onClick">Bei Klick</option>
+                </select>
+            </div>
+            <div class="animation-controls">
+                <label>
+                    <span>Dauer (ms)</span>
+                    <input type="range" id="animation-duration" min="100" max="2000" value="500">
+                    <span id="duration-value">500ms</span>
+                </label>
+                <label>
+                    <span>Verzögerung (ms)</span>
+                    <input type="range" id="animation-delay" min="0" max="2000" value="0">
+                    <span id="delay-value">0ms</span>
+                </label>
             </div>
         </div>
-    </footer>
+    </div>
+
+    <!-- Context Menu -->
+    <div class="context-menu" id="context-menu">
+        <div class="context-menu-item" data-action="edit">
+            <i class="fas fa-edit"></i>
+            <span>Bearbeiten</span>
+        </div>
+        <div class="context-menu-item" data-action="duplicate">
+            <i class="fas fa-copy"></i>
+            <span>Duplizieren</span>
+        </div>
+        <div class="context-menu-item" data-action="delete">
+            <i class="fas fa-trash"></i>
+            <span>Löschen</span>
+        </div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item" data-action="animate">
+            <i class="fas fa-magic"></i>
+            <span>Animieren</span>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>NeoBuilder wird geladen...</p>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toast-container"></div>
 
     <script src="script.js"></script>
 </body>
